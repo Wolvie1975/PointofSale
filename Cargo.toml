@@ -1,0 +1,19 @@
+[package]
+name = "pos"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+
+[dependencies]
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+# --- Planned (post-POC): Microsoft SQL Server persistence --------------------
+# Not part of the POC. See README.md "Persistence plan".
+# (sqlx dropped MSSQL support in 0.7; tiberius is the maintained TDS driver.)
+# Check crates.io for current versions when this phase starts.
+# tiberius = { version = "0.12", default-features = false, features = ["tds73", "rustls"] }
+# bb8 = "0.8"
+# bb8-tiberius = "0.15"
+# tokio-util = { version = "0.7", features = ["compat"] }
+# (also add "net" to tokio's features)
