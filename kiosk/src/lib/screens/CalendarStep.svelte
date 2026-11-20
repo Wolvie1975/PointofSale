@@ -64,16 +64,18 @@
         {#if days}
           {#each Array(lead) as _, i (i)}<span></span>{/each}
           {#each days as d (d.date)}
+            {@const on = flow.date === d.date}
             <button
               class="day {d.status}"
-              class:primary={flow.date === d.date}
-              aria-pressed={flow.date === d.date}
+              class:choice={bookable(d.status)}
+              class:on
+              aria-pressed={on}
               disabled={!bookable(d.status)}
               aria-label="{longDate(d.date)}{note[d.status] ? `, ${note[d.status]}` : ''}"
               onclick={() => chooseDay(d.date)}
             >
               <span>{fromIso(d.date).getDate()}</span>
-              <small>{note[d.status]}</small>
+              <small class="sub">{on ? '✓' : note[d.status]}</small>
             </button>
           {/each}
         {/if}
@@ -112,6 +114,6 @@
   .day small { font-size: 0.7rem; min-height: 1em; }
   .day.past, .day.closed { background: transparent; border-color: transparent; color: var(--dim); }
   .day.full { background: transparent; border-style: dashed; color: var(--dim); }
-  .day.limited:not(.primary) small { color: var(--accent); }
+  .day.limited:not(.on) small { color: var(--accent); }
   .day-title { font-size: 1.5rem; margin-bottom: 0.8rem; }
 </style>

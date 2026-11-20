@@ -40,6 +40,25 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 ### Phase 5: Acceptance pass
 - [ ] Every item in the guide's acceptance checklist (section 9) passes
 
+| # | Check | Status |
+|---|---|---|
+| 1 | Full-screen 1920×1080, no chrome, no desktop; Ctrl+Alt+F2–F6 does nothing | Deferred to Phase 6 (needs the kiosk config and `cage`) |
+| 2 | No horizontal scrolling at Small/Medium/Large | **Jason to check** |
+| 3 | Large text: grids drop to 2 columns; long content scrolls vertically | Code ✓ (slots, services, calendar, details); **Jason to check** |
+| 4 | Touch only: finish a booking | **Jason to check** (needs a touchscreen) |
+| 5 | Mouse only: hover feedback, no right-click menu | **Jason to check** |
+| 6 | Keyboard only: Tab/Enter reach everything, focus outline visible; Esc order | Code ✓ (focus kept inside text size panel); **Jason to check** |
+| 7 | On-screen keyboard incl. `- _ + '`, phone number pad, Previous/Next/Hide | Confirmed in Phase 4 |
+| 8 | Closed days (Tue, Thu, Fri) Closed; past days disabled | ✓ tests + confirmed in Phase 4 |
+| 9 | Unavailable shows no names/details in UI or responses | ✓ test `ui_responses_reveal_no_client_details` |
+| 10 | Same slot twice rejected by backend | ✓ test `same_slot_cannot_be_booked_twice` |
+| 11 | Confirm → Done right away with summary and payment note | Confirmed in Phase 4 |
+| 12 | New booking Unpaid; mark paid works and is idempotent | ✓ tests |
+| 13 | 30-minute grid; only 30/60/90 lengths | ✓ tests |
+| 14 | Idle 90 s → Home, everything cleared | Confirmed in Phase 3 |
+| 15 | Text size resets to Medium for the next client | Confirmed in Phase 3 |
+| 16 | No payment or card fields anywhere | ✓ code search of `kiosk/src` |
+
 ### Phase 6: Kiosk deployment
 - [ ] `.rpm` build, `cage`, systemd service on the office machine
 - [ ] **Done when:** it boots straight into the app and nothing else can be reached
@@ -60,6 +79,7 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 | 2026-11-20 | App lives in `kiosk/`; binary is `healing-hideaway-kiosk` (`mainBinaryName`), product name "Healing Hideaway". Template's opener plugin removed (a kiosk must not open outside links). Bundle target is `.rpm` only. Release profile moved to the workspace root. |
 | 2026-11-20 | Shell details: UI scale uses the smaller of width/1422 and height/800, so a narrow window never scrolls sideways. Esc is handled only in the router (closes text size picker → hides keyboard → goes back). Back/Esc targets live in `backFrom` in `flow.svelte.ts`. Home has only "Book a massage" until gift cards are decided; staff sign-in comes with the console. |
 | 2026-11-20 | Booking flow details: the week strip marks Closed/Full days and defaults to the first day with a time; the calendar shows "Few left" (not "2 left", since it can be 1). The on-screen keyboard is sized by screen scale, not text size, so Large text doesn't make it fill the screen; its Continue says Done on the last field. Moving fields on the on-screen keyboard also moves real focus. Inputs have autocomplete off so the kiosk never suggests a previous client's details. Light email format check. |
+| 2026-11-20 | One shared look for every selectable option (`.choice` / `.choice.on` in `app.css`): lengths, week days, calendar days, times, text size. The selected option is accent-filled with a ✓ and a glow (Jason asked for clearer selection). |
 | 2026-11-20 | Minimum Rust raised from 1.85 to 1.90 across the workspace. Tauri 2.12 needs it, and the Rust `tauri` crate must match the npm `@tauri-apps/api` major/minor version (Cargo's resolver had picked 2.11 to fit 1.85). |
 | 2026-11-20 | `kiosk-core` holds all booking rules, including `create_booking` (the guide had them in `commands.rs`). It never reads the clock: callers pass `now`. Errors are a `BookingError` enum whose messages are client-facing. Where the guide and the code differ, the code wins. |
 
@@ -77,4 +97,5 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 - **2026-11-20:** Agreed on the phase plan. Phase 1 done: Cargo workspace (`pos` + `kiosk-core`), domain types, availability, in-memory store; 19 tests (`910ca46`).
 - **2026-11-20:** Phase 2: prerequisites installed; Tauri app created in `kiosk/` and wired to `kiosk-core`. Builds; tests, clippy and `svelte-check` clean. Fixed a Tauri Rust/npm version mismatch (Rust 1.90 minimum). Window confirmed listing the services. Phase 2 done (`6f46750`).
 - **2026-11-20:** Phase 3 built: tokens, scaling, router, TopBar, text size picker, idle reset, Home, placeholder steps. `svelte-check` clean. Confirmed by Jason. Phase 3 done (`92076df`).
-- **2026-11-20:** Phase 4 built: Service, Time, Calendar, Details (keyboard + number pad), Done, all calling `kiosk-core`. `svelte-check` clean. Confirmed by Jason. Phase 4 done.
+- **2026-11-20:** Phase 4 built: Service, Time, Calendar, Details (keyboard + number pad), Done, all calling `kiosk-core`. `svelte-check` clean. Confirmed by Jason. Phase 4 done (`02d229a`).
+- **2026-11-20:** Phase 5 started: checklist reviewed against code and tests; fixed Tab escaping the text size panel; made selected options much more obvious, with one shared style. Waiting on Jason's on-screen checks (#2–6).

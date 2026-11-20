@@ -52,13 +52,9 @@
           <span class="time">{s.label}</span><br /><small>Unavailable</small>
         </button>
       {:else}
-        <button
-          class="slot"
-          class:primary={flow.start === s.start}
-          aria-pressed={flow.start === s.start}
-          onclick={() => pick(s)}
-        >
-          {s.label}
+        {@const on = flow.start === s.start}
+        <button class="slot choice" class:on aria-pressed={on} onclick={() => pick(s)}>
+          {#if on}<span aria-hidden="true">✓ </span>{/if}{s.label}
         </button>
       {/if}
     {/each}
@@ -66,5 +62,7 @@
 {/if}
 
 <style>
-  .slot { padding: 0.4rem; line-height: 1.2; }
+  /* Colours come from the shared `.choice` style in app.css */
+  .slot { min-height: 4.2rem; padding: 0.4rem; line-height: 1.2; }
+  .slot.choice { font-size: 1.15rem; }
 </style>

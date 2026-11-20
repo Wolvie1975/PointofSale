@@ -45,15 +45,13 @@
           <span class="display name">{s.name}</span>
           <span class="muted">{s.description}</span>
         </button>
+        <p class="lengths-label">Choose a length</p>
         <div class="lengths" role="group" aria-label="{s.name} length">
           {#each s.options as o (o.minutes)}
-            <button
-              class="chip"
-              class:primary={isSelected && flow.minutes === o.minutes}
-              aria-pressed={isSelected && flow.minutes === o.minutes}
-              onclick={() => choose(s, o.minutes)}
-            >
-              {o.minutes} min · {formatPrice(o.priceCents)}
+            {@const on = isSelected && flow.minutes === o.minutes}
+            <button class="chip choice" class:on aria-pressed={on} onclick={() => choose(s, o.minutes)}>
+              <span class="mins">{#if on}<span aria-hidden="true">✓ </span>{/if}{o.minutes} min</span>
+              <span class="sub">{formatPrice(o.priceCents)}</span>
             </button>
           {/each}
         </div>
@@ -80,7 +78,7 @@
     flex-direction: column;
     gap: 0.6rem;
   }
-  .card.selected { border: 2px solid var(--accent); }
+  .card.selected { border: 2px solid var(--accent); background: #2a2436; }
   .pick {
     background: transparent;
     border: none;
@@ -92,6 +90,20 @@
     padding: 0.6rem 0.8rem;
   }
   .name { font-size: 1.6rem; }
-  .lengths { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0 0.6rem 0.4rem; }
-  .chip { min-height: 3rem; padding: 0 1rem; background: var(--surface-2); }
+  .lengths-label { padding: 0 0.8rem; font-size: 0.85rem; color: var(--muted); font-weight: 700; }
+  .lengths { display: flex; flex-wrap: wrap; gap: 0.6rem; padding: 0 0.6rem 0.4rem; }
+  .chip {
+    flex: 1 1 0;
+    min-width: 6.5rem;
+    min-height: 4.2rem;
+    padding: 0.4rem 0.8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.1rem;
+    line-height: 1.15;
+  }
+  .chip .mins { font-size: 1.25rem; }
+  .chip .sub { font-size: 0.9rem; }
 </style>

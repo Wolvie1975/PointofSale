@@ -42,15 +42,17 @@
 
   <div class="week" role="group" aria-label="Next 7 days">
     {#each days as d (d)}
+      {@const on = flow.date === d}
       <button
-        class:primary={flow.date === d}
-        aria-pressed={flow.date === d}
+        class="choice"
+        class:on
+        aria-pressed={on}
         disabled={dayState[d] === 'closed'}
         onclick={() => chooseDay(d)}
       >
         {shortWeekday(d)}
         <span class="display num">{fromIso(d).getDate()}</span>
-        <small>{note[dayState[d]]}</small>
+        <small class="sub">{on ? '✓' : note[dayState[d]]}</small>
       </button>
     {/each}
   </div>

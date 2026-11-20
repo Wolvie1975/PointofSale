@@ -14,23 +14,34 @@
     node.querySelector<HTMLElement>('[aria-checked="true"]')?.focus();
   }
   // Esc is handled by the screen router (it closes this picker first).
+
+  /** Keep Tab inside the panel while it's open (focus can't wander behind the backdrop). */
+  function trapTab(e: KeyboardEvent) {
+    if (e.key !== 'Tab') return;
+    const buttons = [...(e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('button')];
+    const i = buttons.indexOf(document.activeElement as HTMLElement);
+    const next = (i + (e.shiftKey ? -1 : 1) + buttons.length) % buttons.length;
+    e.preventDefault();
+    buttons[next].focus();
+  }
 </script>
 
 <!-- Tapping anywhere outside the panel closes it -->
 <button class="backdrop" aria-label="Close text size" tabindex="-1" onclick={close}></button>
 
-<div class="panel" role="dialog" aria-label="Text size" use:focusSelected>
+<div class="panel" role="dialog" aria-modal="true" aria-label="Text size" tabindex="-1" use:focusSelected onkeydown={trapTab}>
   <p class="title">Text size</p>
   <div role="radiogroup" aria-label="Text size" class="options">
     {#each sizes as s (s.value)}
       <button
         role="radio"
         aria-checked={flow.textSize === s.value}
-        class:primary={flow.textSize === s.value}
+        class="choice"
+        class:on={flow.textSize === s.value}
         onclick={() => { flow.textSize = s.value; close(); }}
       >
         <span class="display" style:font-size={s.sample}>Aa</span>
-        {s.label}
+        <span>{#if flow.textSize === s.value}<span aria-hidden="true">✓ </span>{/if}{s.label}</span>
       </button>
     {/each}
   </div>
