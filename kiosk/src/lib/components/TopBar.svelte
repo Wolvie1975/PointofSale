@@ -4,10 +4,28 @@
 
   /** `step` is omitted on Home and Done. */
   let { step, label }: { step?: number; label?: string } = $props();
+
+  // Hidden staff entry: press and hold the name for 3 s to open the staff PIN pad.
+  let holdTimer: ReturnType<typeof setTimeout> | undefined;
+  function startHold() {
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(() => {
+      flow.textSizeOpen = false;
+      flow.staffOpen = true;
+    }, 3000);
+  }
+  const cancelHold = () => clearTimeout(holdTimer);
 </script>
 
 <header>
-  <span class="brand display">Healing Hideaway</span>
+  <span
+    class="brand display"
+    role="presentation"
+    onpointerdown={startHold}
+    onpointerup={cancelHold}
+    onpointerleave={cancelHold}
+    onpointercancel={cancelHold}>Healing Hideaway</span
+  >
 
   {#if step}
     <span class="step" aria-live="polite">Step {step} of 3 · {label}</span>

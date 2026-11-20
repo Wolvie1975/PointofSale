@@ -4,10 +4,10 @@
 
 use chrono::{Local, NaiveDate, NaiveDateTime};
 use kiosk_core::domain::{BookingConfirmation, ClientDetails, DayAvailability, Service, Slot};
-use tauri::State;
+use tauri::{AppHandle, State};
 use uuid::Uuid;
 
-use crate::AppState;
+use crate::{AppState, StaffGate};
 
 fn now() -> NaiveDateTime {
     Local::now().naive_local()
@@ -52,4 +52,18 @@ pub fn create_booking(
 #[tauri::command]
 pub fn mark_booking_paid(state: State<'_, AppState>, booking_id: Uuid) -> Result<(), String> {
     state.0.lock().unwrap().mark_paid(booking_id, now()).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn staff_pin_configured(gate: State<'_, StaffGate>) -> bool {
+    gate.0.lock().unwrap().is_configured()
+}
+
+/// Staff only: closes the app after checking the PIN. Under the kiosk's systemd
+/// service this restarts it fresh (and clears all in-memory bookings).
+#[tauri::command]
+pub fn staff_close_app(app: AppHandle, gate: State<'_, StaffGate>, pin: String) -> Result<(), String> {
+    gate.0.lock().unwrap().check(&pin, now()).map_err(|e| e.to_string())?;
+    app.exit(0);
+    Ok(())
 }

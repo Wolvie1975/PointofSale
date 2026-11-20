@@ -25,6 +25,9 @@ export const api = {
     invoke<BookingConfirmation>('create_booking', { serviceId, minutes, date, start, client }),
   // Staff only. Not called by any kiosk screen; used later by the staff console.
   markBookingPaid: (bookingId: string) => invoke<void>('mark_booking_paid', { bookingId }),
+  // Staff close: the PIN is checked in Rust. Rejects with a staff-facing message.
+  staffPinConfigured: () => invoke<boolean>('staff_pin_configured'),
+  staffCloseApp: (pin: string) => invoke<void>('staff_close_app', { pin }),
 };
 
 export const formatPrice = (cents: number) => `$${(cents / 100).toFixed(2)}`;

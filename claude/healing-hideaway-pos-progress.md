@@ -63,6 +63,8 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 - [x] Kiosk window config (`kiosk/src-tauri/tauri.kiosk.conf.json`) and `npm run build:kiosk`
 - [x] `.rpm` builds (2 MB; installs `/usr/bin/healing-hideaway-kiosk`; requires `cage`, GTK, WebKit)
 - [x] `kiosk/deploy/kiosk.service` and `kiosk/deploy/README.md` (install, SSH-first lockdown, checks, maintenance, undo)
+- [x] RPM installed and working on Jason's Fedora machine
+- [x] Staff-only "close app" with PIN (Jason asked for it after testing)
 - [ ] Install on the office machine and run the checks in `kiosk/deploy/README.md` (Jason; needs sudo there)
 - [ ] **Done when:** it boots straight into the app and nothing else can be reached
 
@@ -84,6 +86,7 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 | 2026-11-20 | Booking flow details: the week strip marks Closed/Full days and defaults to the first day with a time; the calendar shows "Few left" (not "2 left", since it can be 1). The on-screen keyboard is sized by screen scale, not text size, so Large text doesn't make it fill the screen; its Continue says Done on the last field. Moving fields on the on-screen keyboard also moves real focus. Inputs have autocomplete off so the kiosk never suggests a previous client's details. Light email format check. |
 | 2026-11-20 | One shared look for every selectable option (`.choice` / `.choice.on` in `app.css`): lengths, week days, calendar days, times, text size. The selected option is accent-filled with a ✓ and a glow (Jason asked for clearer selection). |
 | 2026-11-20 | Kiosk window settings live in a separate `tauri.kiosk.conf.json` merged at build time (`npm run build:kiosk`), so `tauri dev` keeps a normal window. The RPM declares `cage` as a dependency. Set up SSH before enabling the kiosk service, since the keyboard can't get out afterwards. |
+| 2026-11-20 | Staff close: hold "Healing Hideaway" in the top bar 3 s (or Ctrl+Alt+S) → PIN pad → Close app. PIN checked in Rust (`kiosk-core/src/staff.rs`), 5 wrong tries lock it for 60 s. PIN comes from `HH_STAFF_PIN` (4–8 digits): a root-only systemd override on the office machine; dev builds fall back to `0000`; release builds with no PIN can't be closed from the screen. Under the kiosk service, closing restarts the app fresh. |
 | 2026-11-20 | Minimum Rust raised from 1.85 to 1.90 across the workspace. Tauri 2.12 needs it, and the Rust `tauri` crate must match the npm `@tauri-apps/api` major/minor version (Cargo's resolver had picked 2.11 to fit 1.85). |
 | 2026-11-20 | `kiosk-core` holds all booking rules, including `create_booking` (the guide had them in `commands.rs`). It never reads the clock: callers pass `now`. Errors are a `BookingError` enum whose messages are client-facing. Where the guide and the code differ, the code wins. |
 
@@ -104,4 +107,5 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 - **2026-11-20:** Phase 4 built: Service, Time, Calendar, Details (keyboard + number pad), Done, all calling `kiosk-core`. `svelte-check` clean. Confirmed by Jason. Phase 4 done (`02d229a`).
 - **2026-11-20:** Phase 5 started: checklist reviewed against code and tests; fixed Tab escaping the text size panel; made selected options much more obvious, with one shared style (`fd1903f`).
 - **2026-11-20:** Phase 6 prepared: kiosk build config, RPM builds, systemd unit and deploy guide written. Waiting on install on the office machine.
-- **2026-11-20:** Phase 5 done: Jason confirmed the on-screen checks. Waiting on Jason's on-screen checks (#2–6).
+- **2026-11-20:** Phase 5 done: Jason confirmed the on-screen checks.
+- **2026-11-20:** Phase 6 files committed (`f4be218`). Jason installed the RPM on his Fedora machine; it works. Added staff-only close with PIN (7 new tests, 26 in `kiosk-core`). Waiting on Jason's on-screen checks (#2–6).

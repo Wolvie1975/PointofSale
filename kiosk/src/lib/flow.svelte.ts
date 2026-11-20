@@ -9,6 +9,7 @@ function initial() {
     screen: 'home' as Screen,
     textSize: 'medium' as TextSize,
     textSizeOpen: false, // TextSizePicker visible
+    staffOpen: false, // staff PIN pad (close app) visible
     serviceId: null as number | null,
     minutes: 60 as Minutes,
     date: '', // 'YYYY-MM-DD'

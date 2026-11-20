@@ -9,15 +9,25 @@
   import CalendarStep from '$lib/screens/CalendarStep.svelte';
   import DetailsStep from '$lib/screens/DetailsStep.svelte';
   import DoneStep from '$lib/screens/DoneStep.svelte';
+  import StaffClose from '$lib/components/StaffClose.svelte';
 
   onMount(() => startIdleTimer(90_000));
 
-  // Esc = "go back one level": close the text size picker, then hide the
-  // on-screen keyboard, then step back a screen (Done → Home).
+  // Esc = "go back one level": close the staff PIN pad or text size picker,
+  // then hide the on-screen keyboard, then step back a screen (Done → Home).
+  // Ctrl+Alt+S opens the staff PIN pad (same as holding the name in the top bar).
   function onKeydown(e: KeyboardEvent) {
+    if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      flow.textSizeOpen = false;
+      flow.staffOpen = true;
+      return;
+    }
     if (e.key !== 'Escape') return;
     e.preventDefault();
-    if (flow.textSizeOpen) {
+    if (flow.staffOpen) {
+      flow.staffOpen = false;
+    } else if (flow.textSizeOpen) {
       flow.textSizeOpen = false;
     } else if (flow.activeField) {
       flow.activeField = null;
@@ -49,4 +59,5 @@
   {:else if flow.screen === 'details'}<DetailsStep />
   {:else if flow.screen === 'done'}<DoneStep />
   {/if}
+  {#if flow.staffOpen}<StaffClose />{/if}
 </div>

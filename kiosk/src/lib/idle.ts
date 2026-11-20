@@ -8,7 +8,7 @@ export function startIdleTimer(ms = 90_000) {
   const reset = () => {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      if (flow.screen !== 'home' || flow.textSize !== 'medium' || flow.textSizeOpen) resetFlow();
+      if (flow.screen !== 'home' || flow.textSize !== 'medium' || flow.textSizeOpen || flow.staffOpen) resetFlow();
     }, ms);
   };
 
