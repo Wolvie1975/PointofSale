@@ -2,7 +2,7 @@
 
 Tracks where the in-office kiosk POC stands. The build steps are in [`healing-hideaway-kiosk-poc-guide.md`](../healing-hideaway-kiosk-poc-guide.md).
 
-**Current phase:** 4. Booking flow
+**Current phase:** 5. Acceptance pass
 
 ---
 
@@ -32,10 +32,10 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 - [x] **Done when:** you can click around empty screens, change text size, and it resets after 90 s (confirmed by Jason)
 
 ### Phase 4: Booking flow
-- [ ] Service, Time (week strip), Calendar
-- [ ] Details with on-screen keyboard and phone number pad
-- [ ] Done screen
-- [ ] **Done when:** a booking works with touch, mouse or keyboard, and booking the same slot twice is rejected
+- [x] Service, Time (week strip), Calendar
+- [x] Details with on-screen keyboard and phone number pad
+- [x] Done screen
+- [x] **Done when:** a booking works with touch, mouse or keyboard, and booking the same slot twice is rejected (confirmed by Jason; double booking covered by `kiosk-core` tests)
 
 ### Phase 5: Acceptance pass
 - [ ] Every item in the guide's acceptance checklist (section 9) passes
@@ -59,6 +59,7 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 | 2026-11-20 | Build in this repo, in phases. Kiosk logic lives in its own crate next to `pos`. |
 | 2026-11-20 | App lives in `kiosk/`; binary is `healing-hideaway-kiosk` (`mainBinaryName`), product name "Healing Hideaway". Template's opener plugin removed (a kiosk must not open outside links). Bundle target is `.rpm` only. Release profile moved to the workspace root. |
 | 2026-11-20 | Shell details: UI scale uses the smaller of width/1422 and height/800, so a narrow window never scrolls sideways. Esc is handled only in the router (closes text size picker → hides keyboard → goes back). Back/Esc targets live in `backFrom` in `flow.svelte.ts`. Home has only "Book a massage" until gift cards are decided; staff sign-in comes with the console. |
+| 2026-11-20 | Booking flow details: the week strip marks Closed/Full days and defaults to the first day with a time; the calendar shows "Few left" (not "2 left", since it can be 1). The on-screen keyboard is sized by screen scale, not text size, so Large text doesn't make it fill the screen; its Continue says Done on the last field. Moving fields on the on-screen keyboard also moves real focus. Inputs have autocomplete off so the kiosk never suggests a previous client's details. Light email format check. |
 | 2026-11-20 | Minimum Rust raised from 1.85 to 1.90 across the workspace. Tauri 2.12 needs it, and the Rust `tauri` crate must match the npm `@tauri-apps/api` major/minor version (Cargo's resolver had picked 2.11 to fit 1.85). |
 | 2026-11-20 | `kiosk-core` holds all booking rules, including `create_booking` (the guide had them in `commands.rs`). It never reads the clock: callers pass `now`. Errors are a `BookingError` enum whose messages are client-facing. Where the guide and the code differ, the code wins. |
 
@@ -75,4 +76,5 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 - **2026-11-19:** Reviewed and revised the POC guide; committed it (`91512e6`).
 - **2026-11-20:** Agreed on the phase plan. Phase 1 done: Cargo workspace (`pos` + `kiosk-core`), domain types, availability, in-memory store; 19 tests (`910ca46`).
 - **2026-11-20:** Phase 2: prerequisites installed; Tauri app created in `kiosk/` and wired to `kiosk-core`. Builds; tests, clippy and `svelte-check` clean. Fixed a Tauri Rust/npm version mismatch (Rust 1.90 minimum). Window confirmed listing the services. Phase 2 done (`6f46750`).
-- **2026-11-20:** Phase 3 built: tokens, scaling, router, TopBar, text size picker, idle reset, Home, placeholder steps. `svelte-check` clean. Confirmed by Jason. Phase 3 done.
+- **2026-11-20:** Phase 3 built: tokens, scaling, router, TopBar, text size picker, idle reset, Home, placeholder steps. `svelte-check` clean. Confirmed by Jason. Phase 3 done (`92076df`).
+- **2026-11-20:** Phase 4 built: Service, Time, Calendar, Details (keyboard + number pad), Done, all calling `kiosk-core`. `svelte-check` clean. Confirmed by Jason. Phase 4 done.
