@@ -8,31 +8,31 @@ Turns a Fedora machine into a single-purpose kiosk: it boots straight into the H
 
 ```bash
 cd kiosk
-npm run build:kiosk
+npm run release:kiosk
 ```
 
-This builds with the kiosk window settings (`src-tauri/tauri.kiosk.conf.json`: full screen at 1920×1080, no title bar, no resizing). Plain `npm run tauri dev` keeps a normal window for development.
-
-The package lands in `target/release/bundle/rpm/` at the repo root:
+This builds with the kiosk window settings (`src-tauri/tauri.kiosk.conf.json`: full screen at 1920×1080, no title bar, no resizing), then copies the package into `releases/` at the repo root:
 
 ```
-Healing Hideaway-0.1.0-1.x86_64.rpm
+releases/healing-hideaway-kiosk-0.1.0-1.x86_64.rpm
 ```
 
-The file name has a space in it, so keep the quotes in the commands below. It installs `/usr/bin/healing-hideaway-kiosk` and pulls in `cage`, GTK and WebKit.
+`releases/` is committed to git, so the package is available from GitHub too. It installs `/usr/bin/healing-hideaway-kiosk` and pulls in `cage`, GTK and WebKit. Plain `npm run tauri dev` keeps a normal window for development.
+
+**Versions:** the version comes from `kiosk/package.json` (Tauri reads it from there). Bump it for each release you keep, so each file has its own name and `dnf install` sees it as an upgrade.
 
 ## Trying it on your own Fedora machine
 
-Use this to test a build on an everyday computer **without** turning it into a kiosk. Run the commands in a terminal from the repo root (the folder with `kiosk/` and `target/` in it):
+Use this to test a build on an everyday computer **without** turning it into a kiosk. Run the commands in a terminal from the repo root (the folder with `kiosk/` and `releases/` in it):
 
 ```bash
 cd ~/Development/Environment/Rust_Projects/PointofSale
 
 # First install
-sudo dnf install "./target/release/bundle/rpm/Healing Hideaway-0.1.0-1.x86_64.rpm"
+sudo dnf install ./releases/healing-hideaway-kiosk-0.1.0-1.x86_64.rpm
 
 # A newer build with the same version number (dnf would say "already installed")
-sudo dnf reinstall "./target/release/bundle/rpm/Healing Hideaway-0.1.0-1.x86_64.rpm"
+sudo dnf reinstall ./releases/healing-hideaway-kiosk-0.1.0-1.x86_64.rpm
 ```
 
 Then start it, from any folder:
@@ -74,10 +74,10 @@ From another computer, check that `ssh <user>@<address>` works before going on.
 
 ## 3. Install and try it by hand (on the office machine)
 
-Copy the `.rpm` and `deploy/kiosk.service` to the office machine, then:
+Copy the `.rpm` from `releases/` and `kiosk/deploy/kiosk.service` to the office machine (or clone the repo there), then:
 
 ```bash
-sudo dnf install "./Healing Hideaway-0.1.0-1.x86_64.rpm"
+sudo dnf install ./healing-hideaway-kiosk-0.1.0-1.x86_64.rpm
 ```
 
 Try it under `cage` from a text console. Press Ctrl+Alt+F3, log in, then run:
@@ -138,7 +138,7 @@ journalctl -u kiosk -b                 # logs since boot
 Update to a new build:
 
 ```bash
-sudo dnf install "./Healing Hideaway-<version>-1.x86_64.rpm"
+sudo dnf install ./healing-hideaway-kiosk-<version>-1.x86_64.rpm
 sudo systemctl restart kiosk
 ```
 

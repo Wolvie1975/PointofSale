@@ -11,7 +11,8 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "tauri": "tauri",
-    "build:kiosk": "tauri build --config src-tauri/tauri.kiosk.conf.json"
+    "build:kiosk": "tauri build --config src-tauri/tauri.kiosk.conf.json",
+    "release:kiosk": "npm run build:kiosk && mkdir -p ../releases && cp \"../target/release/bundle/rpm/Healing Hideaway-${npm_package_version}-1.x86_64.rpm\" \"../releases/healing-hideaway-kiosk-${npm_package_version}-1.x86_64.rpm\" && ls -l ../releases"
   },
   "private": true,
   "dependencies": {

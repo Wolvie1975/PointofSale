@@ -11,7 +11,7 @@ The in-office booking app: Tauri 2 (Rust) with a SvelteKit + TypeScript UI. Book
 npm install
 npm run tauri dev     # dev window with hot reload
 npm run check         # Svelte/TypeScript check
-npm run tauri build   # release .rpm in ../target/release/bundle/rpm/
+npm run release:kiosk # kiosk .rpm, copied to ../releases/ (see deploy/README.md)
 ```
 
 If the window comes up blank, prefix the command with `WEBKIT_DISABLE_DMABUF_RENDERER=1`.
