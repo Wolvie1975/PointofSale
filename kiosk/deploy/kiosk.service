@@ -1,0 +1,24 @@
+# /etc/systemd/system/kiosk.service
+# Boots the office machine straight into the Healing Hideaway kiosk under cage.
+# No `-s` on cage: VT switching stays off, so a keyboard can't reach a console.
+[Unit]
+Description=Healing Hideaway kiosk
+After=systemd-user-sessions.service plymouth-quit-wait.service
+Conflicts=getty@tty1.service
+
+[Service]
+User=kiosk
+PAMName=login
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+UtmpIdentifier=tty1
+StandardInput=tty-fail
+Environment=WEBKIT_DISABLE_DMABUF_RENDERER=1
+ExecStart=/usr/bin/cage -- /usr/bin/healing-hideaway-kiosk
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=graphical.target

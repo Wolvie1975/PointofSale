@@ -2,7 +2,7 @@
 
 Tracks where the in-office kiosk POC stands. The build steps are in [`healing-hideaway-kiosk-poc-guide.md`](../healing-hideaway-kiosk-poc-guide.md).
 
-**Current phase:** 5. Acceptance pass
+**Current phase:** 6. Kiosk deployment (Jason testing the RPM)
 
 ---
 
@@ -38,16 +38,16 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 - [x] **Done when:** a booking works with touch, mouse or keyboard, and booking the same slot twice is rejected (confirmed by Jason; double booking covered by `kiosk-core` tests)
 
 ### Phase 5: Acceptance pass
-- [ ] Every item in the guide's acceptance checklist (section 9) passes
+- [x] Every item in the guide's acceptance checklist (section 9) passes, except #1 and touch (#4), which move to Phase 6 on real hardware
 
 | # | Check | Status |
 |---|---|---|
 | 1 | Full-screen 1920×1080, no chrome, no desktop; Ctrl+Alt+F2–F6 does nothing | Deferred to Phase 6 (needs the kiosk config and `cage`) |
-| 2 | No horizontal scrolling at Small/Medium/Large | **Jason to check** |
-| 3 | Large text: grids drop to 2 columns; long content scrolls vertically | Code ✓ (slots, services, calendar, details); **Jason to check** |
-| 4 | Touch only: finish a booking | **Jason to check** (needs a touchscreen) |
-| 5 | Mouse only: hover feedback, no right-click menu | **Jason to check** |
-| 6 | Keyboard only: Tab/Enter reach everything, focus outline visible; Esc order | Code ✓ (focus kept inside text size panel); **Jason to check** |
+| 2 | No horizontal scrolling at Small/Medium/Large | ✓ Confirmed by Jason |
+| 3 | Large text: grids drop to 2 columns; long content scrolls vertically | ✓ Confirmed by Jason |
+| 4 | Touch only: finish a booking | Moved to Phase 6 (needs the touchscreen) |
+| 5 | Mouse only: hover feedback, no right-click menu | ✓ Confirmed by Jason |
+| 6 | Keyboard only: Tab/Enter reach everything, focus outline visible; Esc order | ✓ Confirmed by Jason |
 | 7 | On-screen keyboard incl. `- _ + '`, phone number pad, Previous/Next/Hide | Confirmed in Phase 4 |
 | 8 | Closed days (Tue, Thu, Fri) Closed; past days disabled | ✓ tests + confirmed in Phase 4 |
 | 9 | Unavailable shows no names/details in UI or responses | ✓ test `ui_responses_reveal_no_client_details` |
@@ -60,7 +60,10 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 | 16 | No payment or card fields anywhere | ✓ code search of `kiosk/src` |
 
 ### Phase 6: Kiosk deployment
-- [ ] `.rpm` build, `cage`, systemd service on the office machine
+- [x] Kiosk window config (`kiosk/src-tauri/tauri.kiosk.conf.json`) and `npm run build:kiosk`
+- [x] `.rpm` builds (2 MB; installs `/usr/bin/healing-hideaway-kiosk`; requires `cage`, GTK, WebKit)
+- [x] `kiosk/deploy/kiosk.service` and `kiosk/deploy/README.md` (install, SSH-first lockdown, checks, maintenance, undo)
+- [ ] Install on the office machine and run the checks in `kiosk/deploy/README.md` (Jason; needs sudo there)
 - [ ] **Done when:** it boots straight into the app and nothing else can be reached
 
 ---
@@ -80,6 +83,7 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 | 2026-11-20 | Shell details: UI scale uses the smaller of width/1422 and height/800, so a narrow window never scrolls sideways. Esc is handled only in the router (closes text size picker → hides keyboard → goes back). Back/Esc targets live in `backFrom` in `flow.svelte.ts`. Home has only "Book a massage" until gift cards are decided; staff sign-in comes with the console. |
 | 2026-11-20 | Booking flow details: the week strip marks Closed/Full days and defaults to the first day with a time; the calendar shows "Few left" (not "2 left", since it can be 1). The on-screen keyboard is sized by screen scale, not text size, so Large text doesn't make it fill the screen; its Continue says Done on the last field. Moving fields on the on-screen keyboard also moves real focus. Inputs have autocomplete off so the kiosk never suggests a previous client's details. Light email format check. |
 | 2026-11-20 | One shared look for every selectable option (`.choice` / `.choice.on` in `app.css`): lengths, week days, calendar days, times, text size. The selected option is accent-filled with a ✓ and a glow (Jason asked for clearer selection). |
+| 2026-11-20 | Kiosk window settings live in a separate `tauri.kiosk.conf.json` merged at build time (`npm run build:kiosk`), so `tauri dev` keeps a normal window. The RPM declares `cage` as a dependency. Set up SSH before enabling the kiosk service, since the keyboard can't get out afterwards. |
 | 2026-11-20 | Minimum Rust raised from 1.85 to 1.90 across the workspace. Tauri 2.12 needs it, and the Rust `tauri` crate must match the npm `@tauri-apps/api` major/minor version (Cargo's resolver had picked 2.11 to fit 1.85). |
 | 2026-11-20 | `kiosk-core` holds all booking rules, including `create_booking` (the guide had them in `commands.rs`). It never reads the clock: callers pass `now`. Errors are a `BookingError` enum whose messages are client-facing. Where the guide and the code differ, the code wins. |
 
@@ -98,4 +102,6 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 - **2026-11-20:** Phase 2: prerequisites installed; Tauri app created in `kiosk/` and wired to `kiosk-core`. Builds; tests, clippy and `svelte-check` clean. Fixed a Tauri Rust/npm version mismatch (Rust 1.90 minimum). Window confirmed listing the services. Phase 2 done (`6f46750`).
 - **2026-11-20:** Phase 3 built: tokens, scaling, router, TopBar, text size picker, idle reset, Home, placeholder steps. `svelte-check` clean. Confirmed by Jason. Phase 3 done (`92076df`).
 - **2026-11-20:** Phase 4 built: Service, Time, Calendar, Details (keyboard + number pad), Done, all calling `kiosk-core`. `svelte-check` clean. Confirmed by Jason. Phase 4 done (`02d229a`).
-- **2026-11-20:** Phase 5 started: checklist reviewed against code and tests; fixed Tab escaping the text size panel; made selected options much more obvious, with one shared style. Waiting on Jason's on-screen checks (#2–6).
+- **2026-11-20:** Phase 5 started: checklist reviewed against code and tests; fixed Tab escaping the text size panel; made selected options much more obvious, with one shared style (`fd1903f`).
+- **2026-11-20:** Phase 6 prepared: kiosk build config, RPM builds, systemd unit and deploy guide written. Waiting on install on the office machine.
+- **2026-11-20:** Phase 5 done: Jason confirmed the on-screen checks. Waiting on Jason's on-screen checks (#2–6).

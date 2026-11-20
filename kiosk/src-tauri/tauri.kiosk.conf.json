@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "app": {
+    "windows": [
+      {
+        "title": "Healing Hideaway",
+        "width": 1920,
+        "height": 1080,
+        "resizable": false,
+        "decorations": false,
+        "fullscreen": true,
+        "zoomHotkeysEnabled": false
+      }
+    ]
+  },
+  "bundle": {
+    "linux": {
+      "rpm": {
+        "depends": ["cage"]
+      }
+    }
+  }
+}
