@@ -1,47 +1,52 @@
-<!-- TEMPORARY (Phase 2 check): proves the UI can call the Rust backend.
-     Phase 3 replaces this with the real screen router. -->
+<!-- Screen router: one screen at a time, chosen by flow.screen. -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { api, formatPrice, type Service } from '$lib/api';
+  import { backFrom, flow, resetFlow } from '$lib/flow.svelte';
+  import { startIdleTimer } from '$lib/idle';
+  import Home from '$lib/screens/Home.svelte';
+  import ServiceStep from '$lib/screens/ServiceStep.svelte';
+  import TimeStep from '$lib/screens/TimeStep.svelte';
+  import CalendarStep from '$lib/screens/CalendarStep.svelte';
+  import DetailsStep from '$lib/screens/DetailsStep.svelte';
+  import DoneStep from '$lib/screens/DoneStep.svelte';
 
-  let services = $state<Service[]>([]);
-  let error = $state('');
+  onMount(() => startIdleTimer(90_000));
 
-  onMount(async () => {
-    try {
-      services = await api.services();
-    } catch (e) {
-      error = String(e);
+  // Esc = "go back one level": close the text size picker, then hide the
+  // on-screen keyboard, then step back a screen (Done → Home).
+  function onKeydown(e: KeyboardEvent) {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    if (flow.textSizeOpen) {
+      flow.textSizeOpen = false;
+    } else if (flow.activeField) {
+      flow.activeField = null;
+      (document.activeElement as HTMLElement | null)?.blur();
+    } else if (flow.screen === 'done') {
+      resetFlow();
+    } else {
+      const to = backFrom[flow.screen];
+      if (to) flow.screen = to;
     }
+  }
+
+  // Each new screen starts scrolled to the top with focus at the start,
+  // so keyboard users don't land mid-page.
+  $effect(() => {
+    void flow.screen;
+    (document.activeElement as HTMLElement | null)?.blur();
+    document.querySelector('.kiosk main')?.scrollTo(0, 0);
   });
 </script>
 
-<main>
-  <h1>Healing Hideaway</h1>
-  <p class="muted">Phase 2 check: services loaded from the Rust backend</p>
+<svelte:window onkeydown={onKeydown} />
 
-  {#if error}
-    <p role="alert">Could not load services: {error}</p>
-  {:else if services.length === 0}
-    <p class="muted">Loading…</p>
-  {:else}
-    <ul>
-      {#each services as s (s.id)}
-        <li>
-          <strong>{s.name}</strong> — {s.description}
-          <div class="muted">
-            {s.options.map((o) => `${o.minutes} min · ${formatPrice(o.priceCents)}`).join('  |  ')}
-          </div>
-        </li>
-      {/each}
-    </ul>
+<div class="kiosk">
+  {#if flow.screen === 'home'}<Home />
+  {:else if flow.screen === 'service'}<ServiceStep />
+  {:else if flow.screen === 'time'}<TimeStep />
+  {:else if flow.screen === 'calendar'}<CalendarStep />
+  {:else if flow.screen === 'details'}<DetailsStep />
+  {:else if flow.screen === 'done'}<DoneStep />
   {/if}
-</main>
-
-<style>
-  :global(body) { margin: 0; background: #16151b; color: #f3eee6; font-family: system-ui, sans-serif; }
-  main { padding: 2rem 2.5rem; }
-  ul { list-style: none; padding: 0; display: grid; gap: 1rem; }
-  li { background: #221f29; border: 1px solid #3a3542; border-radius: 0.9rem; padding: 1rem 1.25rem; }
-  .muted { color: #b8b0a4; }
-</style>
+</div>

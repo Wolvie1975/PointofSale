@@ -2,7 +2,7 @@
 
 Tracks where the in-office kiosk POC stands. The build steps are in [`healing-hideaway-kiosk-poc-guide.md`](../healing-hideaway-kiosk-poc-guide.md).
 
-**Current phase:** 3. App shell
+**Current phase:** 4. Booking flow
 
 ---
 
@@ -26,9 +26,10 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 - [x] **Done when:** `npm run tauri dev` opens a window that lists the services (confirmed by Jason)
 
 ### Phase 3: App shell
-- [ ] Design tokens, 1080p scaling, kiosk hardening CSS
-- [ ] Screen router, TopBar, TextSizePicker, idle reset, Home
-- [ ] **Done when:** you can click around empty screens, change text size, and it resets after 90 s
+- [x] Design tokens, 1080p scaling, kiosk hardening CSS
+- [x] Screen router (with Esc), TopBar, TextSizePicker, idle reset, Home
+- [x] Placeholder screens for every booking step, so the flow can be clicked through
+- [x] **Done when:** you can click around empty screens, change text size, and it resets after 90 s (confirmed by Jason)
 
 ### Phase 4: Booking flow
 - [ ] Service, Time (week strip), Calendar
@@ -57,6 +58,7 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 | 2026-11-19 | `cage` without `-s` in the boot service; on-screen keyboard gets `- _ + '`, a phone number pad, and Esc handling. |
 | 2026-11-20 | Build in this repo, in phases. Kiosk logic lives in its own crate next to `pos`. |
 | 2026-11-20 | App lives in `kiosk/`; binary is `healing-hideaway-kiosk` (`mainBinaryName`), product name "Healing Hideaway". Template's opener plugin removed (a kiosk must not open outside links). Bundle target is `.rpm` only. Release profile moved to the workspace root. |
+| 2026-11-20 | Shell details: UI scale uses the smaller of width/1422 and height/800, so a narrow window never scrolls sideways. Esc is handled only in the router (closes text size picker → hides keyboard → goes back). Back/Esc targets live in `backFrom` in `flow.svelte.ts`. Home has only "Book a massage" until gift cards are decided; staff sign-in comes with the console. |
 | 2026-11-20 | Minimum Rust raised from 1.85 to 1.90 across the workspace. Tauri 2.12 needs it, and the Rust `tauri` crate must match the npm `@tauri-apps/api` major/minor version (Cargo's resolver had picked 2.11 to fit 1.85). |
 | 2026-11-20 | `kiosk-core` holds all booking rules, including `create_booking` (the guide had them in `commands.rs`). It never reads the clock: callers pass `now`. Errors are a `BookingError` enum whose messages are client-facing. Where the guide and the code differ, the code wins. |
 
@@ -72,4 +74,5 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 
 - **2026-11-19:** Reviewed and revised the POC guide; committed it (`91512e6`).
 - **2026-11-20:** Agreed on the phase plan. Phase 1 done: Cargo workspace (`pos` + `kiosk-core`), domain types, availability, in-memory store; 19 tests (`910ca46`).
-- **2026-11-20:** Phase 2: prerequisites installed; Tauri app created in `kiosk/` and wired to `kiosk-core`. Builds; tests, clippy and `svelte-check` clean. Fixed a Tauri Rust/npm version mismatch (Rust 1.90 minimum). Window confirmed listing the services. Phase 2 done.
+- **2026-11-20:** Phase 2: prerequisites installed; Tauri app created in `kiosk/` and wired to `kiosk-core`. Builds; tests, clippy and `svelte-check` clean. Fixed a Tauri Rust/npm version mismatch (Rust 1.90 minimum). Window confirmed listing the services. Phase 2 done (`6f46750`).
+- **2026-11-20:** Phase 3 built: tokens, scaling, router, TopBar, text size picker, idle reset, Home, placeholder steps. `svelte-check` clean. Confirmed by Jason. Phase 3 done.
