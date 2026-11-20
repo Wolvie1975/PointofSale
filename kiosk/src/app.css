@@ -80,7 +80,7 @@ button {
 button:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 0 0 2px var(--accent); }
 button:active:not(:disabled) { transform: translateY(1px); }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
-button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+button:focus-visible, a:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
 button.primary { background: var(--accent); color: var(--on-accent); border: none; font-weight: 700; }
 button.ghost { background: transparent; border-color: transparent; }
 
@@ -100,7 +100,7 @@ button.choice.on {
 }
 button.choice.on .sub { color: var(--on-accent); }
 
-input {
+input, textarea {
   font: inherit;
   user-select: text;
   -webkit-user-select: text;
@@ -111,7 +111,10 @@ input {
   background: var(--surface);
   color: var(--text);
 }
-input.active { border: 2px solid var(--accent); box-shadow: 0 0 0 4px #3a3150; }
+textarea { height: auto; padding: 0.8rem 1rem; line-height: 1.4; resize: vertical; }
+/* The field the keyboard is typing into */
+input:focus, textarea:focus { border: 2px solid var(--accent); box-shadow: 0 0 0 4px #3a3150; outline: none; }
+input:focus-visible, textarea:focus-visible { outline: none; }
 
 /* Grids drop columns at Large text instead of overflowing sideways */
 .slot-grid { display: grid; gap: 0.6rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }

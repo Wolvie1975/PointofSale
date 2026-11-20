@@ -1,24 +1,30 @@
-//! Staff PIN gate for staff-only actions (for now: closing the app).
+//! Staff sign-in for staff-only actions (client notes, mark paid, close app).
 //!
 //! The PIN is checked here in Rust, never in the UI, and wrong guesses are
 //! rate-limited: after `MAX_FAILURES` wrong PINs in a row, every attempt is
-//! refused for `LOCKOUT` (even a correct one).
+//! refused for `LOCKOUT` (even a correct one). A correct PIN starts a session:
+//! the UI gets a random token that every staff command must present, and the
+//! session ends after `SESSION_IDLE` without staff activity.
 
 use chrono::{Duration, NaiveDateTime};
 use thiserror::Error;
+use uuid::Uuid;
 
 pub const MAX_FAILURES: u32 = 5;
 pub const LOCKOUT: Duration = Duration::seconds(60);
+pub const SESSION_IDLE: Duration = Duration::minutes(5);
 
 /// Messages are shown to staff on the kiosk.
 #[derive(Debug, Error, PartialEq, Eq)]
-pub enum PinError {
+pub enum StaffError {
     #[error("No staff PIN is set up on this machine.")]
     NotConfigured,
     #[error("Wrong PIN. {remaining} tries left.")]
     Wrong { remaining: u32 },
     #[error("Too many wrong tries. Try again in {seconds} seconds.")]
     Locked { seconds: i64 },
+    #[error("Staff session ended. Please sign in again.")]
+    SignedOut,
 }
 
 #[derive(Debug)]
@@ -41,14 +47,14 @@ impl PinGate {
         self.pin.is_some()
     }
 
-    pub fn check(&mut self, attempt: &str, now: NaiveDateTime) -> Result<(), PinError> {
-        let Some(pin) = &self.pin else { return Err(PinError::NotConfigured) };
+    pub fn check(&mut self, attempt: &str, now: NaiveDateTime) -> Result<(), StaffError> {
+        let Some(pin) = &self.pin else { return Err(StaffError::NotConfigured) };
 
         if let Some(until) = self.locked_until {
             if now < until {
                 // Round up so it never says "0 seconds"
                 let ms = (until - now).num_milliseconds();
-                return Err(PinError::Locked { seconds: (ms + 999) / 1000 });
+                return Err(StaffError::Locked { seconds: (ms + 999) / 1000 });
             }
             self.locked_until = None;
             self.failures = 0;
@@ -62,9 +68,62 @@ impl PinGate {
         self.failures += 1;
         if self.failures >= MAX_FAILURES {
             self.locked_until = Some(now + LOCKOUT);
-            return Err(PinError::Locked { seconds: LOCKOUT.num_seconds() });
+            return Err(StaffError::Locked { seconds: LOCKOUT.num_seconds() });
         }
-        Err(PinError::Wrong { remaining: MAX_FAILURES - self.failures })
+        Err(StaffError::Wrong { remaining: MAX_FAILURES - self.failures })
+    }
+}
+
+/// PIN gate plus the single staff session (one screen, one staff member at a time).
+#[derive(Debug)]
+pub struct StaffAuth {
+    gate: PinGate,
+    session: Option<Session>,
+}
+
+#[derive(Debug)]
+struct Session {
+    token: String,
+    expires: NaiveDateTime,
+}
+
+impl StaffAuth {
+    pub fn new(pin: Option<String>) -> Self {
+        Self { gate: PinGate::new(pin), session: None }
+    }
+
+    pub fn is_configured(&self) -> bool {
+        self.gate.is_configured()
+    }
+
+    /// Checks the PIN and starts a fresh session (ending any previous one).
+    pub fn sign_in(&mut self, pin: &str, now: NaiveDateTime) -> Result<String, StaffError> {
+        self.gate.check(pin, now)?;
+        let token = Uuid::new_v4().simple().to_string();
+        self.session = Some(Session { token: token.clone(), expires: now + SESSION_IDLE });
+        Ok(token)
+    }
+
+    /// Allows a staff action if `token` is the live session, and extends it.
+    pub fn authorize(&mut self, token: &str, now: NaiveDateTime) -> Result<(), StaffError> {
+        match &mut self.session {
+            Some(s) if now >= s.expires => {
+                self.session = None;
+                Err(StaffError::SignedOut)
+            }
+            Some(s) if constant_time_eq(s.token.as_bytes(), token.as_bytes()) => {
+                s.expires = now + SESSION_IDLE;
+                Ok(())
+            }
+            _ => Err(StaffError::SignedOut),
+        }
+    }
+
+    /// Ends the session if `token` is the live one.
+    pub fn sign_out(&mut self, token: &str) {
+        if self.session.as_ref().is_some_and(|s| constant_time_eq(s.token.as_bytes(), token.as_bytes())) {
+            self.session = None;
+        }
     }
 }
 
@@ -98,8 +157,8 @@ mod tests {
     #[test]
     fn wrong_pin_counts_down() {
         let mut g = gate();
-        assert_eq!(g.check("1111", t(0)), Err(PinError::Wrong { remaining: 4 }));
-        assert_eq!(g.check("1111", t(1)), Err(PinError::Wrong { remaining: 3 }));
+        assert_eq!(g.check("1111", t(0)), Err(StaffError::Wrong { remaining: 4 }));
+        assert_eq!(g.check("1111", t(1)), Err(StaffError::Wrong { remaining: 3 }));
     }
 
     #[test]
@@ -108,8 +167,8 @@ mod tests {
         for i in 0..4 {
             g.check("0000", t(i)).unwrap_err();
         }
-        assert_eq!(g.check("0000", t(4)), Err(PinError::Locked { seconds: 60 }));
-        assert_eq!(g.check("2468", t(10)), Err(PinError::Locked { seconds: 54 }));
+        assert_eq!(g.check("0000", t(4)), Err(StaffError::Locked { seconds: 60 }));
+        assert_eq!(g.check("2468", t(10)), Err(StaffError::Locked { seconds: 54 }));
     }
 
     #[test]
@@ -119,7 +178,7 @@ mod tests {
             g.check("0000", t(i)).unwrap_err();
         }
         let later = t(4) + LOCKOUT;
-        assert_eq!(g.check("0000", later), Err(PinError::Wrong { remaining: 4 }));
+        assert_eq!(g.check("0000", later), Err(StaffError::Wrong { remaining: 4 }));
         assert_eq!(g.check("2468", later), Ok(()));
     }
 
@@ -128,7 +187,7 @@ mod tests {
         let mut g = gate();
         g.check("0000", t(0)).unwrap_err();
         g.check("2468", t(1)).unwrap();
-        assert_eq!(g.check("0000", t(2)), Err(PinError::Wrong { remaining: 4 }));
+        assert_eq!(g.check("0000", t(2)), Err(StaffError::Wrong { remaining: 4 }));
     }
 
     #[test]
@@ -136,8 +195,53 @@ mod tests {
         for pin in [None, Some(""), Some("12"), Some("123456789"), Some("12ab")] {
             let mut g = PinGate::new(pin.map(String::from));
             assert!(!g.is_configured());
-            assert_eq!(g.check("1234", t(0)), Err(PinError::NotConfigured));
+            assert_eq!(g.check("1234", t(0)), Err(StaffError::NotConfigured));
         }
+    }
+
+    fn auth() -> StaffAuth {
+        StaffAuth::new(Some("2468".into()))
+    }
+
+    #[test]
+    fn sign_in_gives_a_token_that_authorizes() {
+        let mut a = auth();
+        let token = a.sign_in("2468", t(0)).unwrap();
+        assert_eq!(a.authorize(&token, t(1)), Ok(()));
+        assert_eq!(a.authorize("not-the-token", t(1)), Err(StaffError::SignedOut));
+        assert_eq!(a.authorize("", t(1)), Err(StaffError::SignedOut));
+    }
+
+    #[test]
+    fn wrong_pin_gives_no_session() {
+        let mut a = auth();
+        assert_eq!(a.sign_in("1111", t(0)), Err(StaffError::Wrong { remaining: 4 }));
+        assert_eq!(a.authorize("", t(1)), Err(StaffError::SignedOut));
+    }
+
+    #[test]
+    fn session_ends_after_idle_and_activity_extends_it() {
+        let mut a = auth();
+        let token = a.sign_in("2468", t(0)).unwrap();
+        let almost = t(0) + SESSION_IDLE - Duration::seconds(1);
+        assert_eq!(a.authorize(&token, almost), Ok(())); // extends to almost + IDLE
+        assert_eq!(a.authorize(&token, almost + SESSION_IDLE - Duration::seconds(1)), Ok(()));
+        let idle = almost + SESSION_IDLE - Duration::seconds(1) + SESSION_IDLE;
+        assert_eq!(a.authorize(&token, idle), Err(StaffError::SignedOut));
+        assert_eq!(a.authorize(&token, idle), Err(StaffError::SignedOut)); // stays ended
+    }
+
+    #[test]
+    fn sign_out_and_new_sign_in_end_the_old_session() {
+        let mut a = auth();
+        let first = a.sign_in("2468", t(0)).unwrap();
+        let second = a.sign_in("2468", t(1)).unwrap();
+        assert_ne!(first, second);
+        assert_eq!(a.authorize(&first, t(2)), Err(StaffError::SignedOut));
+        a.sign_out("wrong");
+        assert_eq!(a.authorize(&second, t(3)), Ok(()));
+        a.sign_out(&second);
+        assert_eq!(a.authorize(&second, t(4)), Err(StaffError::SignedOut));
     }
 
     #[test]

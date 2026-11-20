@@ -42,7 +42,8 @@ HH_STAFF_PIN=2468 healing-hideaway-kiosk
 ```
 
 - It opens full screen with no title bar. **Alt+F4** closes it.
-- **Staff close:** hold **Healing Hideaway** in the top bar for 3 seconds (or press Ctrl+Alt+S) and enter the PIN you started it with (any 4–8 digits; `2468` above). Without `HH_STAFF_PIN`, the pad says no PIN is set up and won't close.
+- **Staff area:** tap **Staff** in the top bar (or press Ctrl+Alt+S) and enter the PIN you started it with (any 4–8 digits; `2468` above). From there: **Clients** (private notes, bookings, Mark paid) and **Close app**. Without `HH_STAFF_PIN`, the pad says no PIN is set up and the staff area stays off.
+- The app starts with three sample clients (Avery Example, Jordan Sample, Riley Test) so the staff area has something to show.
 - Opening it from the app menu also works, but then there's no PIN, so use Alt+F4 to close.
 
 To try it exactly as the kiosk runs it, press Ctrl+Alt+F3, log in, and run:
@@ -86,7 +87,7 @@ Try it under `cage` from a text console. Press Ctrl+Alt+F3, log in, then run:
 cage -s -- healing-hideaway-kiosk
 ```
 
-To try the staff close button here, start it with a PIN: `HH_STAFF_PIN=2468 cage -s -- healing-hideaway-kiosk`. `-s` lets you get back out with Ctrl+Alt+F2 while testing. The boot service in step 4 leaves it off. If the window is blank, run `WEBKIT_DISABLE_DMABUF_RENDERER=1 cage -s -- healing-hideaway-kiosk` instead (the service already sets this).
+To try the staff area here, start it with a PIN: `HH_STAFF_PIN=2468 cage -s -- healing-hideaway-kiosk`. `-s` lets you get back out with Ctrl+Alt+F2 while testing. The boot service in step 4 leaves it off. If the window is blank, run `WEBKIT_DISABLE_DMABUF_RENDERER=1 cage -s -- healing-hideaway-kiosk` instead (the service already sets this).
 
 ## 4. Start it at boot
 
@@ -103,7 +104,7 @@ The machine should boot straight into the app. If the app ever exits, systemd st
 
 ### Set the staff PIN
 
-Staff can close the app from the screen: press and hold **Healing Hideaway** in the top bar for 3 seconds (or press Ctrl+Alt+S), then enter the staff PIN. The PIN is 4–8 digits. It's kept out of the code and the repo, in a systemd override that only root can read:
+Staff sign in with the **Staff** button in the top bar (or Ctrl+Alt+S) and the staff PIN. The staff area has **Clients** (private notes, bookings, Mark paid) and **Close app**. Staff are signed out after 5 minutes without staff activity, or when the screen goes back to Home after 90 seconds idle. The PIN is 4–8 digits. It's kept out of the code and the repo, in a systemd override that only root can read:
 
 ```bash
 sudo mkdir -p /etc/systemd/system/kiosk.service.d
@@ -113,9 +114,9 @@ sudo systemctl daemon-reload
 sudo systemctl restart kiosk
 ```
 
-Without a PIN, the app can't be closed from the screen at all. After 5 wrong PINs it refuses every attempt for 60 seconds.
+Without a PIN, the staff area is off (no notes, no Mark paid, no Close app from the screen). After 5 wrong PINs it refuses every attempt for 60 seconds.
 
-> **Note:** Under this service, **Close app restarts the app fresh** after 2 seconds. That clears the screen and all in-memory bookings. To actually stop the kiosk, use SSH (see Maintenance).
+> **Note:** Under this service, **Close app restarts the app fresh** after 2 seconds. That clears the screen and all in-memory bookings and notes. To actually stop the kiosk, use SSH (see Maintenance).
 
 ## 5. Check it
 

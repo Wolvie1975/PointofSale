@@ -2,7 +2,7 @@
 
 Tracks where the in-office kiosk POC stands. The build steps are in [`healing-hideaway-kiosk-poc-guide.md`](../healing-hideaway-kiosk-poc-guide.md).
 
-**Current phase:** 6. Kiosk deployment (Jason testing the RPM)
+**Current phase:** 7. Staff area (Jason to try it); 6. office machine install still open
 
 ---
 
@@ -68,6 +68,17 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 - [ ] Install on the office machine and run the checks in `kiosk/deploy/README.md` (Jason; needs sudo there)
 - [ ] **Done when:** it boots straight into the app and nothing else can be reached
 
+### Phase 7: Staff area (client notes)
+Mocked in memory, like bookings; SQL Server replaces it after the POC.
+- [x] `kiosk-core`: clients built from bookings (matched by phone or email), private notes (add / edit / delete), client list and client record, sample data
+- [x] Staff sign-in: correct PIN gives a session token; every staff command needs it; ends after 5 min without staff activity, on Sign out, or on the 90 s idle reset
+- [x] `mark_booking_paid` replaced by `staff_mark_paid`, which needs staff sign-in (closes the gap flagged in the guide)
+- [x] Visible **Staff** button in the top bar (Jason: no hidden options in the POC); staff menu with Clients and Close app
+- [x] Clients list with search; client page with private notes and bookings (Mark paid with confirm)
+- [x] On-screen keyboard reworked to type into any text field at the cursor (search and notes included)
+- [x] Tests: 39 in `kiosk-core`, including "client-facing responses never include notes"
+- [ ] **Done when:** Jason tries it in `npm run tauri dev` (PIN `0000`)
+
 ---
 
 ## Decisions
@@ -88,6 +99,9 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 | 2026-11-20 | Kiosk window settings live in a separate `tauri.kiosk.conf.json` merged at build time (`npm run build:kiosk`), so `tauri dev` keeps a normal window. The RPM declares `cage` as a dependency. Set up SSH before enabling the kiosk service, since the keyboard can't get out afterwards. |
 | 2026-11-20 | Staff close: hold "Healing Hideaway" in the top bar 3 s (or Ctrl+Alt+S) → PIN pad → Close app. PIN checked in Rust (`kiosk-core/src/staff.rs`), 5 wrong tries lock it for 60 s. PIN comes from `HH_STAFF_PIN` (4–8 digits): a root-only systemd override on the office machine; dev builds fall back to `0000`; release builds with no PIN can't be closed from the screen. Under the kiosk service, closing restarts the app fresh. |
 | 2026-11-20 | Release RPMs are committed to git in `releases/` (Jason's call, so they're on GitHub). `npm run release:kiosk` builds and copies `healing-hideaway-kiosk-<version>-1.x86_64.rpm` there. Tauri reads its version from `kiosk/package.json`; bump it for each kept release. |
+| 2026-11-20 | Staff area replaces the hidden close: visible **Staff** button (still PIN-protected) → menu with Clients and Close app. Staff screens have a tinted top bar so it's obvious nobody is in the client flow. Clients page: notes + bookings with Mark paid; notes can be added, edited and deleted (Jason's picks). |
+| 2026-11-20 | Clients are one record per person, matched by phone (7+ digits) or email (any case); a later booking updates their details. Bookings now store `client_id` instead of a copy of the details. `BookingError` renamed `StoreError`. |
+| 2026-11-20 | The app starts with three obviously fake sample clients (past visits, notes) so the staff area has data. POC only; remove before real use. |
 | 2026-11-20 | Minimum Rust raised from 1.85 to 1.90 across the workspace. Tauri 2.12 needs it, and the Rust `tauri` crate must match the npm `@tauri-apps/api` major/minor version (Cargo's resolver had picked 2.11 to fit 1.85). |
 | 2026-11-20 | `kiosk-core` holds all booking rules, including `create_booking` (the guide had them in `commands.rs`). It never reads the clock: callers pass `now`. Errors are a `BookingError` enum whose messages are client-facing. Where the guide and the code differ, the code wins. |
 
@@ -109,4 +123,5 @@ Plain Rust crate (`kiosk-core/`) in a Cargo workspace with the existing `pos` cr
 - **2026-11-20:** Phase 5 started: checklist reviewed against code and tests; fixed Tab escaping the text size panel; made selected options much more obvious, with one shared style (`fd1903f`).
 - **2026-11-20:** Phase 6 prepared: kiosk build config, RPM builds, systemd unit and deploy guide written. Waiting on install on the office machine.
 - **2026-11-20:** Phase 5 done: Jason confirmed the on-screen checks.
-- **2026-11-20:** Phase 6 files committed (`f4be218`). Jason installed the RPM on his Fedora machine; it works. Added staff-only close with PIN (7 new tests, 26 in `kiosk-core`) (`275807d`). Added `releases/` and `npm run release:kiosk`. Waiting on Jason's on-screen checks (#2–6).
+- **2026-11-20:** Phase 6 files committed (`f4be218`). Jason installed the RPM on his Fedora machine; it works. Added staff-only close with PIN (7 new tests, 26 in `kiosk-core`) (`275807d`). Added `releases/` and `npm run release:kiosk` (`ec1e621`).
+- **2026-11-20:** Phase 7 built: staff area with client notes and bookings, mocked in memory. 39 `kiosk-core` tests; clippy and `svelte-check` clean. Waiting on Jason's try-out.

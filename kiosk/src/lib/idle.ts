@@ -1,6 +1,6 @@
 import { flow, resetFlow } from './flow.svelte';
 
-/** Returns to Home, with everything cleared, after `ms` without a touch, click or key. */
+/** Returns to Home, with everything cleared (and staff signed out), after `ms` without a touch, click or key. */
 export function startIdleTimer(ms = 90_000) {
   let timer: ReturnType<typeof setTimeout>;
   const events = ['pointerdown', 'keydown', 'wheel'] as const;
@@ -8,7 +8,8 @@ export function startIdleTimer(ms = 90_000) {
   const reset = () => {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      if (flow.screen !== 'home' || flow.textSize !== 'medium' || flow.textSizeOpen || flow.staffOpen) resetFlow();
+      const clean = flow.screen === 'home' && flow.textSize === 'medium' && !flow.textSizeOpen;
+      if (!clean || flow.staffSignInOpen || flow.staffToken) resetFlow(); // also signs staff out
     }, ms);
   };
 

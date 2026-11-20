@@ -1,8 +1,8 @@
-<!-- Staff only: enter the PIN to close the app. Opened by holding the name in the
-     top bar for 3 s, or Ctrl+Alt+S. The PIN is checked in Rust, never here. -->
+<!-- Staff sign-in: enter the PIN to open the staff area. Opened by the Staff button
+     in the top bar, or Ctrl+Alt+S. The PIN is checked in Rust, never here. -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { api } from '$lib/api';
+  import { staffApi } from '$lib/api';
   import { flow } from '$lib/flow.svelte';
 
   const MAX = 8;
@@ -12,10 +12,10 @@
   let configured = $state(true);
 
   onMount(async () => {
-    configured = await api.staffPinConfigured().catch(() => false);
+    configured = await staffApi.pinConfigured().catch(() => false);
   });
 
-  const close = () => (flow.staffOpen = false);
+  const close = () => (flow.staffSignInOpen = false);
 
   function press(d: string) {
     if (pin.length < MAX) pin += d;
@@ -27,7 +27,9 @@
     if (checking || pin.length < 4) return;
     checking = true;
     try {
-      await api.staffCloseApp(pin); // the app exits on success
+      flow.staffToken = await staffApi.signIn(pin);
+      flow.staffSignInOpen = false;
+      flow.screen = 'staff';
     } catch (e) {
       message = String(e);
       pin = '';
@@ -56,11 +58,11 @@
 
 <button class="backdrop" aria-label="Cancel" tabindex="-1" onclick={close}></button>
 
-<div class="panel" role="dialog" aria-modal="true" aria-label="Staff: close the app" tabindex="-1" use:focusPanel>
-  <h2>Staff: close the app</h2>
+<div class="panel" role="dialog" aria-modal="true" aria-label="Staff sign-in" tabindex="-1" use:focusPanel>
+  <h2>Staff sign-in</h2>
 
   {#if !configured}
-    <p class="msg">No staff PIN is set up on this machine, so the app can't be closed from here.</p>
+    <p class="msg">No staff PIN is set up on this machine, so the staff area is off.</p>
     <button onclick={close}>OK</button>
   {:else}
     <p class="muted">Enter the staff PIN.</p>
@@ -82,7 +84,7 @@
 
     <div class="actions">
       <button onclick={close}>Cancel</button>
-      <button class="primary" disabled={pin.length < 4 || checking} onclick={submit}>Close app</button>
+      <button class="primary" disabled={pin.length < 4 || checking} onclick={submit}>Sign in</button>
     </div>
   {/if}
 </div>

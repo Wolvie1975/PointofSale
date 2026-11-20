@@ -26,7 +26,7 @@ pub enum SlotStatus {
     Unavailable,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Slot {
     pub start: String, // "16:00" (24h, sent back when booking)
@@ -74,8 +74,8 @@ pub struct Booking {
     pub service_id: u32,
     pub minutes: u32,
     pub start: NaiveDateTime,
-    pub price_cents: i64,      // snapshot at booking time
-    pub client: ClientDetails, // never sent to slot queries
+    pub price_cents: i64, // snapshot at booking time
+    pub client_id: Uuid,  // details live on the Client, never sent to slot queries
     pub payment: PaymentStatus,
     pub paid_at: Option<NaiveDateTime>,
 }
@@ -90,4 +90,63 @@ pub struct BookingConfirmation {
     pub date: NaiveDate,
     pub start_label: String, // "4:00 PM"
     pub price_cents: i64,
+}
+
+// ---- Staff-only types. Never returned by a client-facing command. ----
+
+/// One person, built from their bookings (matched by phone or email).
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Client {
+    pub id: Uuid,
+    pub name: String,
+    pub phone: String,
+    pub email: String,
+}
+
+/// Private staff note about a client. Clients never see these.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Note {
+    pub id: Uuid,
+    pub client_id: Uuid,
+    pub text: String,
+    pub created_at: NaiveDateTime,
+    pub edited_at: Option<NaiveDateTime>,
+}
+
+/// A booking as staff see it.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BookingView {
+    pub id: Uuid,
+    pub service_name: String,
+    pub minutes: u32,
+    pub start: NaiveDateTime,
+    pub price_cents: i64,
+    pub payment: PaymentStatus,
+    pub paid_at: Option<NaiveDateTime>,
+}
+
+/// A row in the staff client list.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClientSummary {
+    pub id: Uuid,
+    pub name: String,
+    pub phone: String,
+    pub email: String,
+    pub bookings: usize,
+    pub unpaid: usize,
+    pub notes: usize,
+    pub next_visit: Option<NaiveDateTime>,
+}
+
+/// Everything staff see on one client's page.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClientRecord {
+    pub client: Client,
+    pub bookings: Vec<BookingView>, // newest first
+    pub notes: Vec<Note>,           // newest first
 }

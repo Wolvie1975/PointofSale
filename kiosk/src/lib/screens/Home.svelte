@@ -13,7 +13,7 @@
     <span>Pick a treatment, a time and you're set</span>
   </button>
   <!-- Gift card tiles come back once that's decided (see the progress file).
-       Staff sign-in arrives with the staff console, after the POC. -->
+       Staff sign in with the Staff button in the top bar. -->
 </main>
 
 <style>

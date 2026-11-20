@@ -6,7 +6,6 @@
   import { longDate } from '$lib/dates';
   import TopBar from '$lib/components/TopBar.svelte';
   import StepFooter from '$lib/components/StepFooter.svelte';
-  import Keyboard from '$lib/components/Keyboard.svelte';
 
   const fields: { key: keyof ClientDetails; label: string; type: string }[] = [
     { key: 'name', label: 'Name', type: 'text' },
@@ -28,16 +27,6 @@
     !name ? 'Add your name' : !phone && !email ? 'Add a phone or email' : !emailOk ? 'Check the email address' : '',
   );
 
-  // When the on-screen keyboard moves to another field, move real focus with it,
-  // so a physical keyboard types into the same field.
-  $effect(() => {
-    const f = flow.activeField;
-    if (!f) return;
-    const el = document.getElementById(`field-${f}`);
-    if (el && document.activeElement !== el) el.focus();
-    el?.scrollIntoView({ block: 'nearest' });
-  });
-
   async function confirm() {
     if (saving || !ready || flow.serviceId === null) return;
     saving = true;
@@ -49,7 +38,6 @@
         phone,
         email,
       });
-      flow.activeField = null;
       flow.screen = 'done';
     } catch (e) {
       error = String(e);
@@ -83,10 +71,7 @@
         autocomplete="off"
         spellcheck="false"
         bind:value={flow.client[f.key]}
-        class:active={flow.activeField === f.key}
         aria-invalid={f.key === 'email' && !emailOk}
-        onfocus={() => (flow.activeField = f.key)}
-        onclick={() => (flow.activeField = f.key)}
       />
     {/each}
   </div>
@@ -98,7 +83,6 @@
     </div>
   {/if}
 </main>
-<Keyboard />
 <StepFooter nextLabel={saving ? 'Booking…' : 'Confirm booking'} disabled={!ready || saving} {hint} onNext={confirm} />
 
 <style>

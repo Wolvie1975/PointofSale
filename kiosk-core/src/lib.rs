@@ -13,4 +13,4 @@ pub mod error;
 pub mod staff;
 pub mod store;
 
-pub use error::{BookingError, Result};
+pub use error::{StoreError, Result};

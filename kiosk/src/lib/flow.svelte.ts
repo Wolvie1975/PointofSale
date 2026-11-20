@@ -1,32 +1,43 @@
-import type { BookingConfirmation, ClientDetails, Minutes } from './api';
+import { staffApi, type BookingConfirmation, type ClientDetails, type Minutes } from './api';
 
-export type Screen = 'home' | 'service' | 'time' | 'calendar' | 'details' | 'done';
+export type Screen =
+  | 'home' | 'service' | 'time' | 'calendar' | 'details' | 'done'
+  | 'staff' | 'staffClients' | 'staffClient';
 export type TextSize = 'small' | 'medium' | 'large';
-export type Field = keyof ClientDetails;
+/** On-screen keyboard layout, or null when hidden. */
+export type KeyboardMode = 'text' | 'phone' | null;
+
+export const isStaffScreen = (s: Screen) => s.startsWith('staff');
 
 function initial() {
   return {
     screen: 'home' as Screen,
     textSize: 'medium' as TextSize,
     textSizeOpen: false, // TextSizePicker visible
-    staffOpen: false, // staff PIN pad (close app) visible
+    staffSignInOpen: false, // staff PIN pad visible
+    keyboard: null as KeyboardMode,
+    // Client booking
     serviceId: null as number | null,
     minutes: 60 as Minutes,
     date: '', // 'YYYY-MM-DD'
     start: '', // 'HH:MM'
     startLabel: '', // '4:00 PM'
     client: { name: '', phone: '', email: '' } as ClientDetails,
-    activeField: null as Field | null,
     confirmation: null as BookingConfirmation | null, // set when the booking is created
+    // Staff
+    staffToken: null as string | null, // from staffApi.signIn; every staff call needs it
+    staffClientId: null as string | null,
   };
 }
 
-/** Everything the current client has chosen. One client at a time. */
+/** Everything the current screen user has chosen. One person at a time. */
 export const flow = $state(initial());
 
-/** Clears everything, including text size, for the next client. */
+/** Clears everything, including text size and any staff session, for the next person. */
 export function resetFlow() {
+  const token = flow.staffToken;
   Object.assign(flow, initial());
+  if (token) staffApi.signOut(token).catch(() => {}); // the backend also ends it after 5 min idle
 }
 
 /** Where Back (and Esc) goes from each screen. */
@@ -35,6 +46,8 @@ export const backFrom: Partial<Record<Screen, Screen>> = {
   time: 'service',
   calendar: 'time',
   details: 'time',
+  staffClients: 'staff',
+  staffClient: 'staffClients',
 };
 
 $effect.root(() => {

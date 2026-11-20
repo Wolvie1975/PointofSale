@@ -29,3 +29,13 @@ export const shortWeekday = (iso: string) => fromIso(iso).toLocaleDateString('en
 /** 'November 2026' */
 export const monthTitle = (year: number, month: number) =>
   new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+/** Local 'YYYY-MM-DDTHH:MM:SS' (chrono NaiveDateTime) → 'Fri, Nov 20, 9:14 AM' */
+export const shortDateTime = (iso: string) =>
+  new Date(iso).toLocaleString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
