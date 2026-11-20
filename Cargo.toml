@@ -2,10 +2,10 @@
 name = "pos"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.90"
 
 [workspace]
-members = ["kiosk-core"]
+members = ["kiosk-core", "kiosk/src-tauri"]
 
 [dependencies]
 thiserror = "2"
@@ -20,3 +20,12 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 # bb8-tiberius = "0.15"
 # tokio-util = { version = "0.7", features = ["compat"] }
 # (also add "net" to tokio's features)
+
+# Release profile for the whole workspace (the kiosk app's .rpm build uses it).
+# See https://tauri.app/concept/size/#cargo-configuration
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true

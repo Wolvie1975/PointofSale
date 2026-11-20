@@ -1,0 +1,25 @@
+[package]
+name = "healing-hideaway-kiosk"
+version = "0.1.0"
+description = "Healing Hideaway in-office booking kiosk"
+edition = "2024"
+rust-version = "1.90"
+
+[lib]
+# The `_lib` suffix keeps the lib name distinct from the bin name
+# (see https://github.com/rust-lang/cargo/issues/8519).
+name = "healing_hideaway_kiosk_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+kiosk-core = { path = "../../kiosk-core" }
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["serde"] }
+
+# Release profile lives in the workspace root Cargo.toml (member profiles are ignored).
