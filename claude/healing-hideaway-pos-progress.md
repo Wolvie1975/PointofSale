@@ -2,7 +2,7 @@
 
 Tracks where the in-office kiosk POC stands. The build steps are in [`healing-hideaway-kiosk-poc-guide.md`](../healing-hideaway-kiosk-poc-guide.md).
 
-**Current phase:** 7. Staff area (Jason to try it); 6. office machine install still open
+**Current phase:** 6. office machine install still open. Waiting on the business details workbook for real menu, prices and hours.
 
 ---
 
@@ -77,7 +77,8 @@ Mocked in memory, like bookings; SQL Server replaces it after the POC.
 - [x] Clients list with search; client page with private notes and bookings (Mark paid with confirm)
 - [x] On-screen keyboard reworked to type into any text field at the cursor (search and notes included)
 - [x] Tests: 39 in `kiosk-core`, including "client-facing responses never include notes"
-- [ ] **Done when:** Jason tries it in `npm run tauri dev` (PIN `0000`)
+- [x] **Done when:** Jason tries it in `npm run tauri dev` (PIN `0000`) (confirmed: "looks good for now")
+- [x] Released as 0.2.0: `releases/healing-hideaway-kiosk-0.2.0-1.x86_64.rpm`
 
 ---
 
@@ -108,7 +109,7 @@ Mocked in memory, like bookings; SQL Server replaces it after the POC.
 ## Open questions
 
 - **Gift cards:** how they're sold, issued and redeemed. Not in the POC until decided.
-- **Real menu:** service names, which lengths each offers, and prices (placeholders are $0).
+- **Real menu:** service names, which lengths each offers, and prices (placeholders are $0). Being collected with `docs/healing-hideaway-business-details.xlsx`.
 - **Real hours:** Lindsey's weekly hours and lunch break (placeholders in `Schedule::healing_hideaway_default`).
 - **Required client details:** placeholder rule is name plus phone or email.
 - **npm audit (2026-11-20):** 3 findings in SvelteKit 2 server features (form actions, remote functions, cookies, server rendering). Not used by this static, serverless app; the only fix is SvelteKit 3 (breaking). Revisit before deployment.
@@ -124,4 +125,6 @@ Mocked in memory, like bookings; SQL Server replaces it after the POC.
 - **2026-11-20:** Phase 6 prepared: kiosk build config, RPM builds, systemd unit and deploy guide written. Waiting on install on the office machine.
 - **2026-11-20:** Phase 5 done: Jason confirmed the on-screen checks.
 - **2026-11-20:** Phase 6 files committed (`f4be218`). Jason installed the RPM on his Fedora machine; it works. Added staff-only close with PIN (7 new tests, 26 in `kiosk-core`) (`275807d`). Added `releases/` and `npm run release:kiosk` (`ec1e621`).
-- **2026-11-20:** Phase 7 built: staff area with client notes and bookings, mocked in memory. 39 `kiosk-core` tests; clippy and `svelte-check` clean. Waiting on Jason's try-out.
+- **2026-11-20:** Phase 7 built: staff area with client notes and bookings, mocked in memory. 39 `kiosk-core` tests; clippy and `svelte-check` clean. Confirmed by Jason (`ebf3409`).
+- **2026-11-20:** Business details intake workbook for staff: `docs/healing-hideaway-business-details.xlsx` (`5f70da1`), also uploaded to Jason's Google Drive as a Google Sheet.
+- **2026-11-20:** Version bumped to 0.2.0; release RPM built into `releases/`.

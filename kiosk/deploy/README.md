@@ -14,7 +14,7 @@ npm run release:kiosk
 This builds with the kiosk window settings (`src-tauri/tauri.kiosk.conf.json`: full screen at 1920×1080, no title bar, no resizing), then copies the package into `releases/` at the repo root:
 
 ```
-releases/healing-hideaway-kiosk-0.1.0-1.x86_64.rpm
+releases/healing-hideaway-kiosk-0.2.0-1.x86_64.rpm
 ```
 
 `releases/` is committed to git, so the package is available from GitHub too. It installs `/usr/bin/healing-hideaway-kiosk` and pulls in `cage`, GTK and WebKit. Plain `npm run tauri dev` keeps a normal window for development.
@@ -29,10 +29,10 @@ Use this to test a build on an everyday computer **without** turning it into a k
 cd ~/Development/Environment/Rust_Projects/PointofSale
 
 # First install
-sudo dnf install ./releases/healing-hideaway-kiosk-0.1.0-1.x86_64.rpm
+sudo dnf install ./releases/healing-hideaway-kiosk-0.2.0-1.x86_64.rpm
 
 # A newer build with the same version number (dnf would say "already installed")
-sudo dnf reinstall ./releases/healing-hideaway-kiosk-0.1.0-1.x86_64.rpm
+sudo dnf reinstall ./releases/healing-hideaway-kiosk-0.2.0-1.x86_64.rpm
 ```
 
 Then start it, from any folder:
@@ -78,7 +78,7 @@ From another computer, check that `ssh <user>@<address>` works before going on.
 Copy the `.rpm` from `releases/` and `kiosk/deploy/kiosk.service` to the office machine (or clone the repo there), then:
 
 ```bash
-sudo dnf install ./healing-hideaway-kiosk-0.1.0-1.x86_64.rpm
+sudo dnf install ./healing-hideaway-kiosk-0.2.0-1.x86_64.rpm
 ```
 
 Try it under `cage` from a text console. Press Ctrl+Alt+F3, log in, then run:
